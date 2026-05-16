@@ -1,10 +1,12 @@
-import { useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
+  Banner,
   BlockStack,
   Button,
   ChoiceList,
   InlineGrid,
 } from "@shopify/polaris";
+import { useAppBridge } from "@shopify/app-bridge-react";
 import { PageContainer, StickyColumn } from "../app/components/layout";
 import {
   PulseColorPicker,
@@ -20,11 +22,20 @@ import {
   fomoModeOptions,
 } from "../app/data/mock/widgetSettings";
 import type { FomoMode, WidgetSettingsState } from "../app/types";
+import {
+  settingsAreEqual,
+  validateWidgetSettings,
+} from "../app/utils/widgetSettings";
 
 export default function WidgetSettingsPage() {
+  const shopify = useAppBridge();
   const [settings, setSettings] = useState<WidgetSettingsState>(
     defaultWidgetSettings,
   );
+  const [savedSettings, setSavedSettings] = useState<WidgetSettingsState>(
+    defaultWidgetSettings,
+  );
+  const [isSaving, setIsSaving] = useState(false);
 
   const update = <K extends keyof WidgetSettingsState>(
     key: K,
@@ -33,16 +44,55 @@ export default function WidgetSettingsPage() {
     setSettings((prev) => ({ ...prev, [key]: value }));
   };
 
+  const validationError = useMemo(
+    () => validateWidgetSettings(settings),
+    [settings],
+  );
+
+  const isDirty = useMemo(
+    () => !settingsAreEqual(settings, savedSettings),
+    [settings, savedSettings],
+  );
+
+  const canSave = isDirty && validationError === null && !isSaving;
+
+  const handleSave = useCallback(async () => {
+    const error = validateWidgetSettings(settings);
+    if (error || settingsAreEqual(settings, savedSettings)) return;
+
+    setIsSaving(true);
+    try {
+      // TODO: POST toPersistableSettings(settings) to your settings API
+      await new Promise((resolve) => setTimeout(resolve, 400));
+
+      setSavedSettings(settings);
+      shopify.toast.show("Settings saved");
+    } catch {
+      shopify.toast.show("Could not save settings", { isError: true });
+    } finally {
+      setIsSaving(false);
+    }
+  }, [savedSettings, settings, shopify]);
+
   return (
     <PageContainer
       title="Widget Settings"
       subtitle="Customize how FOMO appears on your product pages"
       primaryAction={
-        <Button variant="primary" disabled>
-          Save (mock)
+        <Button
+          variant="primary"
+          disabled={!canSave}
+          loading={isSaving}
+          onClick={handleSave}
+        >
+          Save
         </Button>
       }
     >
+      {isDirty && validationError && (
+        <Banner tone="warning">{validationError}</Banner>
+      )}
+
       <InlineGrid columns={2} gap="400">
         <BlockStack gap="400">
           <SectionCard>
