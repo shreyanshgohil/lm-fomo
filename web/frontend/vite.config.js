@@ -49,6 +49,9 @@ export default defineConfig({
   plugins: [react()],
   resolve: {
     preserveSymlinks: true,
+    alias: {
+      "@app": fileURLToPath(new URL("./app", import.meta.url)),
+    },
   },
   server: {
     host: "localhost",
