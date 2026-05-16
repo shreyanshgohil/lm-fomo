@@ -6,7 +6,7 @@ import {
   InlineGrid,
   TextField,
 } from "@shopify/polaris";
-import { PageContainer } from "../app/components/layout";
+import { PageContainer, StickyColumn } from "../app/components/layout";
 import {
   AccentColorPicker,
   HybridRangeFields,
@@ -104,27 +104,26 @@ export default function WidgetSettingsPage() {
               />
             </SettingsSection>
 
+            <SettingsSection
+              title="Accent color"
+              description="Pick a color for the activity indicator"
+            >
+              <AccentColorPicker
+                value={settings.accentColor}
+                onChange={(color) => update("accentColor", color)}
+              />
+            </SettingsSection>
           </SectionCard>
         </BlockStack>
 
-        <BlockStack gap="400">
-          <SectionCard
-            title="Accent color"
-            description="Pick a color for the activity indicator"
-          >
-            <AccentColorPicker
-              value={settings.accentColor}
-              onChange={(color) => update("accentColor", color)}
-            />
-          </SectionCard>
-
+        <StickyColumn>
           <SectionCard
             title="Widget preview"
             description="Updates in real time as you change settings"
           >
             <PreviewWidget settings={settings} />
           </SectionCard>
-        </BlockStack>
+        </StickyColumn>
       </InlineGrid>
     </PageContainer>
   );

@@ -1,5 +1,6 @@
 import { BlockStack, Box, InlineStack, Text } from "@shopify/polaris";
 import type { FomoMode, WidgetSettingsState } from "../../types";
+import { LiveActivityDot } from "./LiveActivityDot";
 
 interface PreviewWidgetProps {
   settings: Pick<
@@ -93,16 +94,7 @@ export function PreviewWidget({ settings }: PreviewWidgetProps) {
           background="bg-surface"
         >
           <InlineStack gap="200" blockAlign="center">
-            <span
-              style={{
-                width: 8,
-                height: 8,
-                borderRadius: "50%",
-                backgroundColor: settings.accentColor,
-                flexShrink: 0,
-                display: "inline-block",
-              }}
-            />
+            <LiveActivityDot color={settings.accentColor} />
             <Text as="p" variant="bodyMd" fontWeight="medium">
               {message}
             </Text>
