@@ -1,22 +1,21 @@
 import { useState } from "react";
 import {
   BlockStack,
-  Box,
   Button,
   ChoiceList,
   InlineGrid,
-  InlineStack,
-  Select,
   TextField,
 } from "@shopify/polaris";
 import { PageContainer } from "../app/components/layout";
 import {
+  AccentColorPicker,
+  HybridRangeFields,
   PreviewWidget,
+  ProductScopePicker,
   SectionCard,
   SettingsSection,
 } from "../app/components/ui";
 import {
-  accentColors,
   defaultWidgetSettings,
   fomoModeOptions,
 } from "../app/data/mock/widgetSettings";
@@ -48,21 +47,48 @@ export default function WidgetSettingsPage() {
         <BlockStack gap="400">
           <SectionCard>
             <SettingsSection
+              title="Products"
+              description="Choose where the widget appears in your catalog"
+            >
+              <ProductScopePicker
+                productScope={settings.productScope}
+                selectedProducts={settings.selectedProducts}
+                onScopeChange={(scope) => update("productScope", scope)}
+                onProductsChange={(products) =>
+                  update("selectedProducts", products)
+                }
+              />
+            </SettingsSection>
+
+            <SettingsSection
               title="FOMO mode"
               description="Choose how purchase activity is displayed"
             >
-              <ChoiceList
-                title="Display mode"
-                titleHidden
-                choices={fomoModeOptions.map((opt) => ({
-                  label: opt.label,
-                  value: opt.value,
-                }))}
-                selected={[settings.fomoMode]}
-                onChange={(selected) =>
-                  update("fomoMode", selected[0] as FomoMode)
-                }
-              />
+              <BlockStack gap="400">
+                <ChoiceList
+                  title="Display mode"
+                  titleHidden
+                  choices={fomoModeOptions.map((opt) => ({
+                    label: opt.label,
+                    value: opt.value,
+                    helpText: "helpText" in opt ? opt.helpText : undefined,
+                  }))}
+                  selected={[settings.fomoMode]}
+                  onChange={(selected) =>
+                    update("fomoMode", selected[0] as FomoMode)
+                  }
+                />
+                {settings.fomoMode === "hybrid_randomized" && (
+                  <HybridRangeFields
+                    min={settings.hybridMin}
+                    max={settings.hybridMax}
+                    ttl={settings.hybridTtl}
+                    onMinChange={(hybridMin) => update("hybridMin", hybridMin)}
+                    onMaxChange={(hybridMax) => update("hybridMax", hybridMax)}
+                    onTtlChange={(hybridTtl) => update("hybridTtl", hybridTtl)}
+                  />
+                )}
+              </BlockStack>
             </SettingsSection>
 
             <SettingsSection
@@ -78,53 +104,27 @@ export default function WidgetSettingsPage() {
               />
             </SettingsSection>
 
-            <SettingsSection
-              title="Accent color"
-              description="Pick a color for the activity indicator"
-            >
-              <InlineStack gap="200">
-                {accentColors.map((color) => (
-                  <button
-                    key={color}
-                    type="button"
-                    aria-label={`Select color ${color}`}
-                    onClick={() => update("accentColor", color)}
-                    style={{
-                      width: 36,
-                      height: 36,
-                      borderRadius: "var(--p-border-radius-full)",
-                      backgroundColor: color,
-                      border:
-                        settings.accentColor === color
-                          ? "3px solid var(--p-color-border-emphasis)"
-                          : "2px solid var(--p-color-border)",
-                      cursor: "pointer",
-                      padding: 0,
-                    }}
-                  />
-                ))}
-              </InlineStack>
-              <Box paddingBlockStart="300">
-                <Select
-                  label="Hex value"
-                  options={accentColors.map((c) => ({
-                    label: c,
-                    value: c,
-                  }))}
-                  value={settings.accentColor}
-                  onChange={(value) => update("accentColor", value)}
-                />
-              </Box>
-            </SettingsSection>
           </SectionCard>
         </BlockStack>
 
-        <SectionCard
-          title="Widget preview"
-          description="Updates in real time as you change settings"
-        >
-          <PreviewWidget settings={settings} />
-        </SectionCard>
+        <BlockStack gap="400">
+          <SectionCard
+            title="Accent color"
+            description="Pick a color for the activity indicator"
+          >
+            <AccentColorPicker
+              value={settings.accentColor}
+              onChange={(color) => update("accentColor", color)}
+            />
+          </SectionCard>
+
+          <SectionCard
+            title="Widget preview"
+            description="Updates in real time as you change settings"
+          >
+            <PreviewWidget settings={settings} />
+          </SectionCard>
+        </BlockStack>
       </InlineGrid>
     </PageContainer>
   );
