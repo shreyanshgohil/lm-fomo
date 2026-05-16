@@ -24,12 +24,12 @@ function isValidHex(value: string): boolean {
   return /^#?[0-9A-Fa-f]{6}$/.test(value.trim());
 }
 
-interface AccentColorPickerProps {
+interface PulseColorPickerProps {
   value: string;
   onChange: (hex: string) => void;
 }
 
-export function AccentColorPicker({ value, onChange }: AccentColorPickerProps) {
+export function PulseColorPicker({ value, onChange }: PulseColorPickerProps) {
   const [color, setColor] = useState<HSBColor>(() => hexToHsb(value));
   const [hexInput, setHexInput] = useState(value);
 

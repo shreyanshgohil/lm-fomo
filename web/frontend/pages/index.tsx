@@ -4,12 +4,12 @@ import {
   Button,
   ChoiceList,
   InlineGrid,
-  TextField,
 } from "@shopify/polaris";
 import { PageContainer, StickyColumn } from "../app/components/layout";
 import {
-  AccentColorPicker,
+  PulseColorPicker,
   HybridRangeFields,
+  MessageTranslationsEditor,
   PreviewWidget,
   ProductScopePicker,
   SectionCard,
@@ -93,24 +93,34 @@ export default function WidgetSettingsPage() {
 
             <SettingsSection
               title="Message"
-              description="Use {{count}} as a placeholder for the number shown"
+              description="Add translations for each language your store supports"
             >
-              <TextField
-                label="Custom text"
-                value={settings.customText}
-                onChange={(value) => update("customText", value)}
-                autoComplete="off"
-                multiline={2}
+              <MessageTranslationsEditor
+                translations={settings.messageTranslations}
+                onChange={(messageTranslations) => {
+                  setSettings((prev) => {
+                    const previewStillExists = messageTranslations.some(
+                      (entry) => entry.locale === prev.previewLocale,
+                    );
+                    return {
+                      ...prev,
+                      messageTranslations,
+                      previewLocale: previewStillExists
+                        ? prev.previewLocale
+                        : (messageTranslations[0]?.locale ?? "en"),
+                    };
+                  });
+                }}
               />
             </SettingsSection>
 
             <SettingsSection
-              title="Accent color"
-              description="Pick a color for the activity indicator"
+              title="Pulse color"
+              description="Color of the live pulsing dot beside your message"
             >
-              <AccentColorPicker
-                value={settings.accentColor}
-                onChange={(color) => update("accentColor", color)}
+              <PulseColorPicker
+                value={settings.pulseColor}
+                onChange={(color) => update("pulseColor", color)}
               />
             </SettingsSection>
           </SectionCard>
@@ -121,7 +131,12 @@ export default function WidgetSettingsPage() {
             title="Widget preview"
             description="Updates in real time as you change settings"
           >
-            <PreviewWidget settings={settings} />
+            <PreviewWidget
+              settings={settings}
+              onPreviewLocaleChange={(previewLocale) =>
+                update("previewLocale", previewLocale)
+              }
+            />
           </SectionCard>
         </StickyColumn>
       </InlineGrid>

@@ -1,9 +1,41 @@
 import type { ProductScope, WidgetSettingsState } from "../../types";
+import { DEFAULT_MESSAGE_TEMPLATE } from "../../utils/messageTranslations";
+
+export const localeOptions = [
+  { label: "English", value: "en" },
+  { label: "French", value: "fr" },
+  { label: "German", value: "de" },
+  { label: "Spanish", value: "es" },
+  { label: "Italian", value: "it" },
+  { label: "Portuguese (Brazil)", value: "pt-BR" },
+  { label: "Dutch", value: "nl" },
+  { label: "Japanese", value: "ja" },
+  { label: "Korean", value: "ko" },
+  { label: "Chinese (Simplified)", value: "zh-CN" },
+] as const;
+
+export const messageTextColorPresets = [
+  { label: "Default", value: "#202223" },
+  { label: "Shopify green", value: "#008060" },
+  { label: "Blue", value: "#2C6ECB" },
+  { label: "Teal", value: "#00A0AC" },
+  { label: "Gold", value: "#B98900" },
+  { label: "Orange", value: "#E85D04" },
+  { label: "Red", value: "#D82C0D" },
+  { label: "Pink", value: "#E60096" },
+  { label: "Purple", value: "#9C6ADE" },
+  { label: "Indigo", value: "#5856D6" },
+  { label: "Charcoal", value: "#5C5F62" },
+  { label: "White", value: "#FFFFFF" },
+] as const;
 
 export const defaultWidgetSettings: WidgetSettingsState = {
   fomoMode: "last_24_hours",
-  customText: "{{count}} people bought this in the last 24 hours",
-  accentColor: "#008060",
+  messageTranslations: [
+    { locale: "en", text: DEFAULT_MESSAGE_TEMPLATE },
+  ],
+  previewLocale: "en",
+  pulseColor: "#008060",
   productScope: "all_products",
   selectedProducts: [],
   hybridMin: 5,

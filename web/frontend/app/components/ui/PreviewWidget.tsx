@@ -1,12 +1,24 @@
-import { BlockStack, Box, InlineStack, Text } from "@shopify/polaris";
+import { useMemo } from "react";
+import {
+  BlockStack,
+  Box,
+  InlineStack,
+  Tabs,
+  Text,
+} from "@shopify/polaris";
+import { localeOptions } from "../../data/mock/widgetSettings";
 import type { FomoMode, WidgetSettingsState } from "../../types";
+import { getMessageForLocale } from "../../utils/messageTranslations";
+import { applyCountToMessage } from "../../utils/richTextMessage";
+import "./RichTextMessageEditor.css";
 import { LiveActivityDot } from "./LiveActivityDot";
 
 interface PreviewWidgetProps {
   settings: Pick<
     WidgetSettingsState,
-    | "customText"
-    | "accentColor"
+    | "messageTranslations"
+    | "previewLocale"
+    | "pulseColor"
     | "fomoMode"
     | "productScope"
     | "selectedProducts"
@@ -14,6 +26,11 @@ interface PreviewWidgetProps {
     | "hybridMax"
     | "hybridTtl"
   >;
+  onPreviewLocaleChange: (locale: string) => void;
+}
+
+function getLocaleLabel(locale: string): string {
+  return localeOptions.find((opt) => opt.value === locale)?.label ?? locale;
 }
 
 function formatTtl(minutes: number): string {
@@ -38,69 +55,109 @@ function resolvePreviewCount(
   return "12";
 }
 
-function resolvePreviewMessage(
-  customText: string,
+function resolvePreviewHtml(
+  template: string,
   fomoMode: FomoMode,
   hybridMin: number,
   hybridMax: number,
 ): string {
   const count = resolvePreviewCount(fomoMode, hybridMin, hybridMax);
-  return customText.replace(/\{\{count\}\}/g, count);
+  return applyCountToMessage(template, count);
 }
 
-export function PreviewWidget({ settings }: PreviewWidgetProps) {
-  const message = resolvePreviewMessage(
-    settings.customText,
+export function PreviewWidget({
+  settings,
+  onPreviewLocaleChange,
+}: PreviewWidgetProps) {
+  const { messageTranslations, previewLocale } = settings;
+
+  const selectedTabIndex = useMemo(() => {
+    const index = messageTranslations.findIndex(
+      (entry) => entry.locale === previewLocale,
+    );
+    return index >= 0 ? index : 0;
+  }, [messageTranslations, previewLocale]);
+
+  const previewTabs = useMemo(
+    () =>
+      messageTranslations.map((entry) => ({
+        id: entry.locale,
+        content: getLocaleLabel(entry.locale),
+        panelID: `preview-panel-${entry.locale}`,
+      })),
+    [messageTranslations],
+  );
+
+  const template = getMessageForLocale(messageTranslations, previewLocale);
+  const messageHtml = resolvePreviewHtml(
+    template,
     settings.fomoMode,
     settings.hybridMin,
     settings.hybridMax,
   );
+
   const hybridRangeLabel =
     settings.fomoMode === "hybrid_randomized"
       ? `Randomizes between ${Math.min(settings.hybridMin, settings.hybridMax)} and ${Math.max(settings.hybridMin, settings.hybridMax)} · refreshes every ${formatTtl(settings.hybridTtl)}`
       : null;
 
   return (
-    <Box
-      background="bg-surface-secondary"
-      borderColor="border"
-      borderWidth="025"
-      borderRadius="300"
-      padding="600"
-      minHeight="200px"
-    >
-      <BlockStack gap="300" inlineAlign="center">
-        <BlockStack gap="100" inlineAlign="center">
-          <Text as="p" variant="bodySm" tone="subdued">
-            Live preview
-          </Text>
-          <Text as="p" variant="bodySm" tone="subdued">
-            {settings.productScope === "all_products"
-              ? "Shown on all product pages"
-              : settings.selectedProducts.length > 0
-                ? `Shown on ${settings.selectedProducts.length} selected product${settings.selectedProducts.length === 1 ? "" : "s"}`
-                : "No products selected yet"}
-          </Text>
-          {hybridRangeLabel && (
+    <BlockStack gap="400">
+      {previewTabs.length > 1 && (
+        <Tabs
+          tabs={previewTabs}
+          selected={selectedTabIndex}
+          onSelect={(index) =>
+            onPreviewLocaleChange(messageTranslations[index].locale)
+          }
+          fitted
+        />
+      )}
+
+      <Box
+        background="bg-surface-secondary"
+        borderColor="border"
+        borderWidth="025"
+        borderRadius="300"
+        padding="600"
+        minHeight="200px"
+      >
+        <BlockStack gap="300" inlineAlign="center">
+          <BlockStack gap="100" inlineAlign="center">
             <Text as="p" variant="bodySm" tone="subdued">
-              {hybridRangeLabel}
+              Live preview
+              {previewTabs.length === 1 &&
+                ` · ${getLocaleLabel(previewLocale)}`}
             </Text>
-          )}
+            <Text as="p" variant="bodySm" tone="subdued">
+              {settings.productScope === "all_products"
+                ? "Shown on all product pages"
+                : settings.selectedProducts.length > 0
+                  ? `Shown on ${settings.selectedProducts.length} selected product${settings.selectedProducts.length === 1 ? "" : "s"}`
+                  : "No products selected yet"}
+            </Text>
+            {hybridRangeLabel && (
+              <Text as="p" variant="bodySm" tone="subdued">
+                {hybridRangeLabel}
+              </Text>
+            )}
+          </BlockStack>
+          <Box
+            padding="300"
+            borderRadius="200"
+            minWidth="280px"
+            background="bg-surface"
+          >
+            <InlineStack gap="200" blockAlign="center" wrap={false}>
+              <LiveActivityDot color={settings.pulseColor} />
+              <span
+                className="fomo-message-html"
+                dangerouslySetInnerHTML={{ __html: messageHtml }}
+              />
+            </InlineStack>
+          </Box>
         </BlockStack>
-        <Box
-          padding="300"
-          borderRadius="200"
-          minWidth="280px"
-          background="bg-surface"
-        >
-          <InlineStack gap="200" blockAlign="center">
-            <LiveActivityDot color={settings.accentColor} />
-            <Text as="p" variant="bodyMd" fontWeight="medium">
-              {message}
-            </Text>
-          </InlineStack>
-        </Box>
-      </BlockStack>
-    </Box>
+      </Box>
+    </BlockStack>
   );
 }

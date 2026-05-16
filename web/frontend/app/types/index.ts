@@ -9,10 +9,17 @@ export interface SelectedProduct {
   handle?: string;
 }
 
+export interface MessageTranslation {
+  locale: string;
+  text: string;
+}
+
 export interface WidgetSettingsState {
   fomoMode: FomoMode;
-  customText: string;
-  accentColor: string;
+  messageTranslations: MessageTranslation[];
+  /** Locale shown in the admin preview */
+  previewLocale: string;
+  pulseColor: string;
   productScope: ProductScope;
   selectedProducts: SelectedProduct[];
   hybridMin: number;
