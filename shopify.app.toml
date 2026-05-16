@@ -7,10 +7,13 @@ name = "lm-fomo"
 
 [access_scopes]
 # Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
-scopes = "write_products"
+scopes = "read_orders,write_products,write_metafields"
 
 [webhooks]
-api_version = "2026-07"
+api_version = "2026-01"
+[[webhooks.subscriptions]]
+topics = [ "orders/create", "app/uninstalled" ]
+uri = "/api/webhooks"
 
 [auth]
 redirect_urls = [ "https://example.com/api/auth" ]

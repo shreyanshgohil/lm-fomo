@@ -6,7 +6,8 @@ import serveStatic from "serve-static";
 
 import shopify from "./shopify.js";
 import productCreator from "./product-creator.js";
-import PrivacyWebhookHandlers from "./privacy.js";
+import webhookHandlers from "./webhooks/index.js";
+import { enqueueFullSync, registerShop, startCronJobs } from "./jobs/worker.js";
 
 const PORT = parseInt(
   process.env.BACKEND_PORT || process.env.PORT || "3000",
@@ -25,11 +26,24 @@ app.get(shopify.config.auth.path, shopify.auth.begin());
 app.get(
   shopify.config.auth.callbackPath,
   shopify.auth.callback(),
+  async (req, res, next) => {
+    try {
+      const shop = res.locals.shopify.session?.shop;
+      if (shop) {
+        await shopify.registerWebhooks({ session: res.locals.shopify.session });
+        await registerShop(shop);
+        await enqueueFullSync(shop);
+      }
+      next();
+    } catch (error) {
+      next(error);
+    }
+  },
   shopify.redirectToShopifyOrAppRoot()
 );
 app.post(
   shopify.config.webhooks.path,
-  shopify.processWebhooks({ webhookHandlers: PrivacyWebhookHandlers })
+  shopify.processWebhooks({ webhookHandlers })
 );
 
 // If you are adding routes outside of the /api path, remember to
@@ -84,3 +98,4 @@ app.use("/*", shopify.ensureInstalledOnShop(), async (_req, res, _next) => {
 });
 
 app.listen(PORT);
+startCronJobs();
