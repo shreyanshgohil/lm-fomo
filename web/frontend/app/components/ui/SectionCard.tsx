@@ -2,7 +2,7 @@ import { BlockStack, Box, Text } from "@shopify/polaris";
 import type { ReactNode } from "react";
 
 interface SectionCardProps {
-  title: string;
+  title?: string;
   description?: string;
   children: ReactNode;
   action?: ReactNode;
@@ -14,6 +14,8 @@ export function SectionCard({
   children,
   action,
 }: SectionCardProps) {
+  const hasHeader = title || description || action;
+
   return (
     <Box
       background="bg-surface"
@@ -23,7 +25,7 @@ export function SectionCard({
       padding="500"
     >
       <BlockStack gap="400">
-        <BlockStack gap="100">
+        {hasHeader && (
           <div
             style={{
               display: "flex",
@@ -33,9 +35,11 @@ export function SectionCard({
             }}
           >
             <BlockStack gap="100">
-              <Text as="h2" variant="headingMd">
-                {title}
-              </Text>
+              {title && (
+                <Text as="h2" variant="headingMd">
+                  {title}
+                </Text>
+              )}
               {description && (
                 <Text as="p" variant="bodySm" tone="subdued">
                   {description}
@@ -44,7 +48,7 @@ export function SectionCard({
             </BlockStack>
             {action}
           </div>
-        </BlockStack>
+        )}
         {children}
       </BlockStack>
     </Box>

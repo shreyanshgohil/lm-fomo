@@ -1,13 +1,9 @@
 import type { WidgetSettingsState } from "../../types";
 
 export const defaultWidgetSettings: WidgetSettingsState = {
-  enabled: true,
   fomoMode: "last_24_hours",
   customText: "{{count}} people bought this in the last 24 hours",
-  showEmoji: true,
-  animationEnabled: true,
   accentColor: "#008060",
-  desktopVisible: true,
 };
 
 export const fomoModeOptions = [

@@ -2,10 +2,7 @@ import { BlockStack, Box, InlineStack, Text } from "@shopify/polaris";
 import type { FomoMode, WidgetSettingsState } from "../../types";
 
 interface PreviewWidgetProps {
-  settings: Pick<
-    WidgetSettingsState,
-    "customText" | "showEmoji" | "animationEnabled" | "accentColor" | "fomoMode"
-  >;
+  settings: Pick<WidgetSettingsState, "customText" | "accentColor" | "fomoMode">;
 }
 
 function resolvePreviewMessage(
@@ -21,7 +18,6 @@ export function PreviewWidget({ settings }: PreviewWidgetProps) {
     settings.customText,
     settings.fomoMode,
   );
-  const emoji = settings.showEmoji ? "🔥 " : "";
 
   return (
     <Box
@@ -54,25 +50,10 @@ export function PreviewWidget({ settings }: PreviewWidgetProps) {
               }}
             />
             <Text as="p" variant="bodyMd" fontWeight="medium">
-              <span
-                style={{
-                  animation: settings.animationEnabled
-                    ? "lm-fomo-pulse 2s ease-in-out infinite"
-                    : "none",
-                }}
-              >
-                {emoji}
-                {message}
-              </span>
+              {message}
             </Text>
           </InlineStack>
         </Box>
-        <style>{`
-          @keyframes lm-fomo-pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.85; }
-          }
-        `}</style>
       </BlockStack>
     </Box>
   );
