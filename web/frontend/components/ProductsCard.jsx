@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Card, TextContainer, Text } from "@shopify/polaris";
+import { LegacyCard, TextContainer, Text } from "@shopify/polaris";
 import { useAppBridge } from "@shopify/app-bridge-react";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "react-query";
@@ -48,7 +48,7 @@ export function ProductsCard() {
   };
 
   return (
-    <Card
+    <LegacyCard
       title={t("ProductsCard.title")}
       sectioned
       primaryFooterAction={{
@@ -68,6 +68,6 @@ export function ProductsCard() {
           </Text>
         </Text>
       </TextContainer>
-    </Card>
+    </LegacyCard>
   );
 }
