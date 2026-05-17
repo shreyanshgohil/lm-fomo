@@ -7,14 +7,40 @@ name = "lm-fomo"
 
 [access_scopes]
 # Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
-scopes = "write_products"
+scopes = "read_orders,read_all_orders,write_products"
 
 [webhooks]
-api_version = "2026-07"
+api_version = "2025-07"
+
+  # orders/create is registered in code after Protected customer data is enabled
+  [[webhooks.subscriptions]]
+  topics = [ "app/uninstalled" ]
+  uri = "/api/webhooks"
+
+  [[webhooks.subscriptions]]
+  compliance_topics = [ "customers/data_request", "customers/redact", "shop/redact" ]
+  uri = "/api/webhooks"
 
 [auth]
 redirect_urls = [ "https://example.com/api/auth" ]
 
 [build]
-include_config_on_deploy = true
 automatically_update_urls_on_dev = true
+
+[product.metafields.app.total_sold]
+type = "number_integer"
+name = "Total units sold"
+description = "Lifetime units sold for this product (all orders)"
+
+  [product.metafields.app.total_sold.access]
+  admin = "merchant_read"
+  storefront = "public_read"
+
+[product.metafields.app.sold_last_24h]
+type = "number_integer"
+name = "Units sold in last 24 hours"
+description = "Units sold in the rolling 24-hour window"
+
+  [product.metafields.app.sold_last_24h.access]
+  admin = "merchant_read"
+  storefront = "public_read"

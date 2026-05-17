@@ -1,4 +1,5 @@
 // @ts-check
+import "./load-env.js";
 import { join } from "path";
 import { readFileSync } from "fs";
 import express from "express";
@@ -6,7 +7,10 @@ import serveStatic from "serve-static";
 
 import shopify from "./shopify.js";
 import productCreator from "./product-creator.js";
-import PrivacyWebhookHandlers from "./privacy.js";
+import { CoreWebhookHandlers } from "./webhooks/index.js";
+import { patchWebhookRegister } from "./webhooks/safe-register.js";
+import { startJobWorker } from "./jobs/worker.js";
+import { runPostAuthInstall } from "./install.js";
 
 const PORT = parseInt(
   process.env.BACKEND_PORT || process.env.PORT || "3000",
@@ -18,22 +22,35 @@ const STATIC_PATH =
     ? `${process.cwd()}/frontend/dist`
     : `${process.cwd()}/frontend/`;
 
+// OAuth registers core webhooks only (orders/create is deferred — see register-orders.js).
+patchWebhookRegister(shopify);
+shopify.api.webhooks.addHandlers(CoreWebhookHandlers);
+
 const app = express();
 
-// Set up Shopify authentication and webhook handling
 app.get(shopify.config.auth.path, shopify.auth.begin());
 app.get(
   shopify.config.auth.callbackPath,
   shopify.auth.callback(),
-  shopify.redirectToShopifyOrAppRoot()
+  async (req, res, next) => {
+    const session = res.locals.shopify?.session;
+    if (session) {
+      try {
+        await runPostAuthInstall(shopify, session);
+      } catch (error) {
+        console.error(
+          `[${session.shop}] Post-auth install failed:`,
+          error.message
+        );
+      }
+    }
+    return shopify.redirectToShopifyOrAppRoot()(req, res, next);
+  }
 );
 app.post(
   shopify.config.webhooks.path,
-  shopify.processWebhooks({ webhookHandlers: PrivacyWebhookHandlers })
+  shopify.processWebhooks({ webhookHandlers: CoreWebhookHandlers })
 );
-
-// If you are adding routes outside of the /api path, remember to
-// also add a proxy rule for them in web/frontend/vite.config.js
 
 app.use("/api/*", shopify.validateAuthenticatedSession());
 
@@ -83,4 +100,8 @@ app.use("/*", shopify.ensureInstalledOnShop(), async (_req, res, _next) => {
     );
 });
 
-app.listen(PORT);
+await startJobWorker();
+
+app.listen(PORT, () => {
+  console.log(`Server listening on port ${PORT}`);
+});
