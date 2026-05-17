@@ -1,3 +1,8 @@
+export { PulseColorPicker } from "./PulseColorPicker";
+export { HybridRangeFields } from "./HybridRangeFields";
+export { LiveActivityDot } from "./LiveActivityDot";
+export { MessageTranslationsEditor } from "./MessageTranslationsEditor";
+export { ProductScopePicker } from "./ProductScopePicker";
 export { SectionCard } from "./SectionCard";
 export { SettingsSection } from "./SettingsSection";
 export { PreviewWidget } from "./PreviewWidget";

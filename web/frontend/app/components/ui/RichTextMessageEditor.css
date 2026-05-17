@@ -1,0 +1,99 @@
+.rich-text-message {
+  display: flex;
+  flex-direction: column;
+  gap: var(--p-space-100);
+}
+
+.rich-text-message__label {
+  font-size: var(--p-font-size-325);
+  font-weight: var(--p-font-weight-medium);
+  line-height: var(--p-font-line-height-400);
+  color: var(--p-color-text);
+}
+
+.rich-text-message__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--p-space-200);
+  padding: var(--p-space-150) var(--p-space-200);
+  border: var(--p-border-width-025) solid var(--p-color-border);
+  border-bottom: none;
+  border-radius: var(--p-border-radius-200) var(--p-border-radius-200) 0 0;
+  background: var(--p-color-bg-surface-secondary);
+}
+
+.rich-text-message__editor {
+  min-height: 88px;
+  padding: var(--p-space-300);
+  border: var(--p-border-width-025) solid var(--p-color-border);
+  border-radius: 0 0 var(--p-border-radius-200) var(--p-border-radius-200);
+  background: var(--p-color-bg-surface);
+  font-size: var(--p-font-size-325);
+  line-height: var(--p-font-line-height-500);
+  color: var(--p-color-text);
+  outline: none;
+  word-break: break-word;
+}
+
+.rich-text-message__editor:focus {
+  border-color: var(--p-color-border-emphasis);
+  box-shadow: 0 0 0 1px var(--p-color-border-emphasis);
+}
+
+.rich-text-message__editor:empty::before {
+  content: attr(data-placeholder);
+  color: var(--p-color-text-secondary);
+  pointer-events: none;
+}
+
+.rich-text-message__color-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: var(--p-space-200);
+}
+
+.rich-text-message__color-swatch {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--p-border-radius-full);
+  border: var(--p-border-width-025) solid var(--p-color-border);
+  cursor: pointer;
+  padding: 0;
+}
+
+.rich-text-message__color-swatch:hover {
+  box-shadow: 0 0 0 2px var(--p-color-border-emphasis);
+}
+
+.rich-text-message__color-swatch--default {
+  background: var(--p-color-bg-surface);
+  position: relative;
+}
+
+.rich-text-message__color-swatch--default::after {
+  content: "";
+  position: absolute;
+  inset: 6px;
+  border-radius: var(--p-border-radius-full);
+  background: var(--p-color-text);
+}
+
+.rich-text-message__hex-row {
+  width: 100%;
+}
+
+.fomo-message-html {
+  font-size: var(--p-font-size-325);
+  line-height: var(--p-font-line-height-500);
+  color: var(--p-color-text);
+}
+
+.fomo-message-html b,
+.fomo-message-html strong {
+  font-weight: var(--p-font-weight-semibold);
+}
+
+.fomo-message-html p {
+  margin: 0;
+}

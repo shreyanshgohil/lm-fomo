@@ -1,4 +1,4 @@
-import { BlockStack, Page } from "@shopify/polaris";
+import { BlockStack, Box, Page } from "@shopify/polaris";
 import type { ReactNode } from "react";
 
 interface PageContainerProps {
@@ -21,7 +21,9 @@ export function PageContainer({
       subtitle={subtitle}
       primaryAction={primaryAction}
     >
-      <BlockStack gap="600">{children}</BlockStack>
+      <Box paddingBlockEnd="1200">
+        <BlockStack gap="600">{children}</BlockStack>
+      </Box>
     </Page>
   );
 }
