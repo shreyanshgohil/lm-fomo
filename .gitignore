@@ -1,6 +1,9 @@
 # Environment Configuration
 .env
 .env.*
+.idea
+
+package-lock.json
 
 # Dependency directory
 node_modules

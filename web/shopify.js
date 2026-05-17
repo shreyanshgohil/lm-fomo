@@ -1,9 +1,12 @@
-import { BillingInterval, LATEST_API_VERSION } from "@shopify/shopify-api";
+import { BillingInterval } from "@shopify/shopify-api";
 import { shopifyApp } from "@shopify/shopify-app-express";
-import { SQLiteSessionStorage } from "@shopify/shopify-app-session-storage-sqlite";
-import { restResources } from "@shopify/shopify-api/rest/admin/2024-10";
+import { MongoDBSessionStorage } from "@shopify/shopify-app-session-storage-mongodb";
+import { API_VERSION } from "./constants.js";
 
-const DB_PATH = `${process.cwd()}/database.sqlite`;
+const MONGODB_URI = process.env.MONGODB_URI;
+if (!MONGODB_URI) {
+  throw new Error("MONGODB_URI is required for MongoDB session storage");
+}
 
 // The transactions with Shopify will always be marked as test transactions, unless NODE_ENV is production.
 // See the ensureBilling helper to learn more about billing in this template.
@@ -18,8 +21,7 @@ const billingConfig = {
 
 const shopify = shopifyApp({
   api: {
-    apiVersion: LATEST_API_VERSION,
-    restResources,
+    apiVersion: API_VERSION,
     future: {
       customerAddressDefaultFix: true,
       lineItemBilling: true,
@@ -34,8 +36,7 @@ const shopify = shopifyApp({
   webhooks: {
     path: "/api/webhooks",
   },
-  // This should be replaced with your preferred storage strategy
-  sessionStorage: new SQLiteSessionStorage(DB_PATH),
+  sessionStorage: new MongoDBSessionStorage(MONGODB_URI),
 });
 
 export default shopify;
