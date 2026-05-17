@@ -2,6 +2,7 @@
 export const METAFIELD_NAMESPACE = "$app";
 export const METAFIELD_TOTAL_SOLD = "total_sold";
 export const METAFIELD_SOLD_LAST_24H = "sold_last_24h";
+export const METAFIELD_WIDGET_SETTINGS = "widget_settings";
 
 export const ORDERS_PAGE_SIZE = 250;
 export const LINE_ITEMS_PAGE_SIZE = 250;

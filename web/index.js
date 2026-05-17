@@ -11,6 +11,7 @@ import { CoreWebhookHandlers } from "./webhooks/index.js";
 import { patchWebhookRegister } from "./webhooks/safe-register.js";
 import { startJobWorker } from "./jobs/worker.js";
 import { runPostAuthInstall } from "./install.js";
+import { registerWidgetSettingsRoutes } from "./routes/widget-settings.js";
 
 const PORT = parseInt(
   process.env.BACKEND_PORT || process.env.PORT || "3000",
@@ -55,6 +56,8 @@ app.post(
 app.use("/api/*", shopify.validateAuthenticatedSession());
 
 app.use(express.json());
+
+registerWidgetSettingsRoutes(app);
 
 app.get("/api/products/count", async (_req, res) => {
   const client = new shopify.api.clients.Graphql({
