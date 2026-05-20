@@ -9,6 +9,7 @@ import {
 import { connectDb, listInstalledShops } from "../db.js";
 import { getAgenda } from "./queue.js";
 import { isOrdersAccessError } from "../services/errors.js";
+import { getApiSession } from "../services/api-session.js";
 import { assertOrdersAccess } from "../services/session-access.js";
 import { registerOrdersWebhooks } from "../webhooks/register-orders.js";
 import {
@@ -20,19 +21,6 @@ import {
 async function getShopify() {
   const { default: shopify } = await import("../shopify.js");
   return shopify;
-}
-
-async function loadOfflineSession(shop) {
-  const shopify = await getShopify();
-  const sessions = await shopify.config.sessionStorage.findSessionsByShop(shop);
-  const offline =
-    sessions.find((session) => session.isOnline === false) ?? sessions[0];
-
-  if (!offline) {
-    throw new Error(`No session found for shop: ${shop}`);
-  }
-
-  return offline;
 }
 
 async function scheduleFullSyncRetry(agenda, shop) {
@@ -50,7 +38,7 @@ export async function startJobWorker() {
 
     try {
       const shopify = await getShopify();
-      const session = await loadOfflineSession(shop);
+      const session = await getApiSession(shop);
       await assertOrdersAccess(shopify, session);
       await registerOrdersWebhooks(shopify, session);
 
@@ -98,7 +86,7 @@ export async function startJobWorker() {
 
     try {
       const shopify = await getShopify();
-      const session = await loadOfflineSession(shop);
+      const session = await getApiSession(shop);
       await assertOrdersAccess(shopify, session);
       const result = await syncLast24HoursSales(session, shop);
       console.log(`[${shop}] 24h sales sync complete`, result);
@@ -123,7 +111,7 @@ export async function startJobWorker() {
     const { shop, order } = job.attrs.data;
 
     try {
-      const session = await loadOfflineSession(shop);
+      const session = await getApiSession(shop);
       await applyOrderToSales(session, shop, order);
       console.log(`[${shop}] Processed order ${order.id}`);
     } catch (error) {
@@ -138,9 +126,10 @@ export async function startJobWorker() {
   });
 
   await agenda.start();
-  await agenda.every(CRON_24H_SYNC, JOB_SYNC_24H_ALL_SHOPS, null, {
+  const cronSchedule = process.env.CRON_24H_SYNC || CRON_24H_SYNC;
+  await agenda.every(cronSchedule, JOB_SYNC_24H_ALL_SHOPS, null, {
     timezone: process.env.CRON_TZ || undefined,
   });
 
-  console.log(`Agenda worker started (24h cron: ${CRON_24H_SYNC})`);
+  console.log(`Agenda worker started (24h cron: ${cronSchedule})`);
 }

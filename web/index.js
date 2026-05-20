@@ -29,6 +29,9 @@ shopify.api.webhooks.addHandlers(CoreWebhookHandlers);
 
 const app = express();
 
+// Required when Shopify CLI / Cloudflare tunnel forwards HTTPS to the local server.
+app.set("trust proxy", true);
+
 app.get(shopify.config.auth.path, shopify.auth.begin());
 app.get(
   shopify.config.auth.callbackPath,

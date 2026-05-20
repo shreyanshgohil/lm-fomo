@@ -13,8 +13,8 @@ export const JOB_SYNC_24H = "sync-24h";
 export const JOB_SYNC_24H_ALL_SHOPS = "sync-24h-all-shops";
 export const JOB_PROCESS_ORDER = "process-order";
 
-/** Daily at 2:00 AM server local time. */
-export const CRON_24H_SYNC = "0 2 * * *";
+/** Every 5 minutes. Override with CRON_24H_SYNC (standard cron syntax). */
+export const CRON_24H_SYNC = "*/5 * * * *";
 
 export const GRAPHQL_THROTTLE_RESERVE = 100;
 export const GRAPHQL_MAX_RETRIES = 8;

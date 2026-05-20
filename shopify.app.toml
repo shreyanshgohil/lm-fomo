@@ -22,7 +22,7 @@ api_version = "2025-07"
   uri = "/api/webhooks"
 
 [auth]
-redirect_urls = [ "https://example.com/api/auth" ]
+redirect_urls = [ "https://example.com/api/auth/callback" ]
 
 [build]
 automatically_update_urls_on_dev = true
