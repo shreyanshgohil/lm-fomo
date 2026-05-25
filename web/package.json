@@ -8,7 +8,7 @@
     "dev": "cross-env NODE_ENV=development nodemon --exec \"node --import ./load-env.js\" index.js --ignore ./frontend",
     "serve": "cross-env NODE_ENV=production node --import ./load-env.js index.js",
     "test": "node --test services/widget-settings.test.js",
-    "production": "cross-env NODE_ENV=production pm2 start npm --name \"lm-fomo\" -- run serve"
+    "production": "cross-env NODE_ENV=production BACKEND_PORT=6500 pm2 start npm --name \"lm-fomo\" -- run serve"
   },
   "type": "module",
   "engines": {
