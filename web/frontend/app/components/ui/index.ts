@@ -6,3 +6,4 @@ export { ProductScopePicker } from "./ProductScopePicker";
 export { SectionCard } from "./SectionCard";
 export { SettingsSection } from "./SettingsSection";
 export { PreviewWidget } from "./PreviewWidget";
+export { WidgetAppearanceFields } from "./WidgetAppearanceFields";

@@ -3,6 +3,10 @@ export const METAFIELD_NAMESPACE = "$app";
 export const METAFIELD_TOTAL_SOLD = "total_sold";
 export const METAFIELD_SOLD_LAST_24H = "sold_last_24h";
 export const METAFIELD_WIDGET_SETTINGS = "widget_settings";
+export const METAFIELD_ONBOARDING_COMPLETED = "onboarding_completed";
+
+/** Theme app extension block handle (blocks/star_rating.liquid). */
+export const THEME_APP_BLOCK_HANDLE = "star_rating";
 
 export const ORDERS_PAGE_SIZE = 250;
 export const LINE_ITEMS_PAGE_SIZE = 250;

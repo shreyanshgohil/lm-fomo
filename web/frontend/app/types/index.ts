@@ -20,6 +20,9 @@ export interface WidgetSettingsState {
   /** Locale shown in the admin preview */
   previewLocale: string;
   pulseColor: string;
+  backgroundColor: string;
+  borderEnabled: boolean;
+  borderColor: string;
   productScope: ProductScope;
   selectedProducts: SelectedProduct[];
   hybridMin: number;

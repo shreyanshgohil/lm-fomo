@@ -3,6 +3,13 @@
   align-items: center;
   gap: 8px;
   flex-wrap: nowrap;
+  background-color: var(--fomo-bg-color, transparent);
+  border-radius: 6px;
+  padding: 8px 12px;
+}
+
+.fomo-widget--bordered {
+  border: 1px solid var(--fomo-border-color, #e1e3e5);
 }
 
 .fomo-widget__dot {

@@ -13,6 +13,7 @@ import {
 } from "./webhooks/index.js";
 import { startJobWorker } from "./jobs/worker.js";
 import { runPostAuthInstall } from "./install.js";
+import { registerOnboardingRoutes } from "./routes/onboarding.js";
 import { registerWidgetSettingsRoutes } from "./routes/widget-settings.js";
 import ensureOfflineToken from "./auth/token-exchange.js";
 
@@ -87,6 +88,7 @@ app.use("/api/*", ensureOfflineToken, shopify.validateAuthenticatedSession());
 
 app.use(express.json());
 
+registerOnboardingRoutes(app);
 registerWidgetSettingsRoutes(app);
 
 app.get("/api/products/count", async (_req, res) => {

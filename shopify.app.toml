@@ -58,3 +58,11 @@ description = "Admin configuration for the FOMO storefront widget"
   [shop.metafields.app.widget_settings.access]
   admin = "merchant_read_write"
   storefront = "public_read"
+
+[shop.metafields.app.onboarding_completed]
+type = "boolean"
+name = "Onboarding completed"
+description = "Whether the merchant finished the in-app onboarding flow"
+
+  [shop.metafields.app.onboarding_completed.access]
+  admin = "merchant_read_write"

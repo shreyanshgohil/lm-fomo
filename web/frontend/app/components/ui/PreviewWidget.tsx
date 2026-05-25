@@ -19,6 +19,9 @@ interface PreviewWidgetProps {
     | "messageTranslations"
     | "previewLocale"
     | "pulseColor"
+    | "backgroundColor"
+    | "borderEnabled"
+    | "borderColor"
     | "fomoMode"
     | "productScope"
     | "selectedProducts"
@@ -146,7 +149,16 @@ export function PreviewWidget({
             padding="300"
             borderRadius="200"
             minWidth="280px"
-            background="bg-surface"
+            style={{
+              backgroundColor: settings.backgroundColor,
+              ...(settings.borderEnabled
+                ? {
+                    borderWidth: "1px",
+                    borderStyle: "solid",
+                    borderColor: settings.borderColor,
+                  }
+                : { border: "none" }),
+            }}
           >
             <InlineStack gap="200" blockAlign="center" wrap={false}>
               <LiveActivityDot color={settings.pulseColor} />

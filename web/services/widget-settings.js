@@ -11,6 +11,9 @@ export const DEFAULT_WIDGET_SETTINGS = {
   fomoMode: "last_24_hours",
   messageTranslations: [{ locale: "en", text: DEFAULT_MESSAGE_TEMPLATE }],
   pulseColor: "#008060",
+  backgroundColor: "#FFFFFF",
+  borderEnabled: false,
+  borderColor: "#E1E3E5",
   productScope: "all_products",
   selectedProducts: [],
   hybridMin: 5,
@@ -126,6 +129,15 @@ export function normalizeWidgetSettings(input) {
       typeof input.pulseColor === "string" && input.pulseColor.trim()
         ? input.pulseColor.trim()
         : DEFAULT_WIDGET_SETTINGS.pulseColor,
+    backgroundColor:
+      typeof input.backgroundColor === "string" && input.backgroundColor.trim()
+        ? input.backgroundColor.trim()
+        : DEFAULT_WIDGET_SETTINGS.backgroundColor,
+    borderEnabled: input.borderEnabled === true,
+    borderColor:
+      typeof input.borderColor === "string" && input.borderColor.trim()
+        ? input.borderColor.trim()
+        : DEFAULT_WIDGET_SETTINGS.borderColor,
     productScope,
     selectedProducts: normalizeSelectedProducts(input.selectedProducts),
     hybridMin: Number.isFinite(hybridMin)
