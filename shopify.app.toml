@@ -1,7 +1,7 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
 client_id = "f8d6d24ce68f5a5a504914b4b043a8c7"
-application_url = "https://storage-raw-risks-night.trycloudflare.com"
+application_url = "https://lm-fomo.lumoonix.com"
 embedded = true
 name = "lm-fomo"
 
@@ -21,8 +21,13 @@ api_version = "2025-07"
   compliance_topics = [ "customers/data_request", "customers/redact", "shop/redact" ]
   uri = "/api/webhooks"
 
+
 [auth]
-redirect_urls = [ "https://example.com/api/auth/callback" ]
+redirect_urls = [
+  "https://lm-fomo.lumoonix.com/api/auth",
+  "https://lm-fomo.lumoonix.com/api/auth/callback",
+  "https://lm-fomo.lumoonix.com/auth/callback"
+]
 
 [build]
 automatically_update_urls_on_dev = true
