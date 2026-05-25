@@ -7,7 +7,8 @@
     "debug": "node --import ./load-env.js --inspect-brk index.js",
     "dev": "cross-env NODE_ENV=development nodemon --exec \"node --import ./load-env.js\" index.js --ignore ./frontend",
     "serve": "cross-env NODE_ENV=production node --import ./load-env.js index.js",
-    "test": "node --test services/widget-settings.test.js"
+    "test": "node --test services/widget-settings.test.js",
+    "production": "cross-env NODE_ENV=production pm2 start npm --name \"lm-fomo\" -- run serve"
   },
   "type": "module",
   "engines": {
