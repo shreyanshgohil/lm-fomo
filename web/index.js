@@ -7,11 +7,14 @@ import serveStatic from "serve-static";
 
 import shopify from "./shopify.js";
 import productCreator from "./product-creator.js";
-import { CoreWebhookHandlers } from "./webhooks/index.js";
-import { patchWebhookRegister } from "./webhooks/safe-register.js";
+import {
+  CoreWebhookHandlers,
+  OrdersWebhookHandlers,
+} from "./webhooks/index.js";
 import { startJobWorker } from "./jobs/worker.js";
 import { runPostAuthInstall } from "./install.js";
 import { registerWidgetSettingsRoutes } from "./routes/widget-settings.js";
+import ensureOfflineToken from "./auth/token-exchange.js";
 
 const PORT = parseInt(
   process.env.BACKEND_PORT || process.env.PORT || "3000",
@@ -23,9 +26,11 @@ const STATIC_PATH =
     ? `${process.cwd()}/frontend/dist`
     : `${process.cwd()}/frontend/`;
 
-// OAuth registers core webhooks only (orders/create is deferred — see register-orders.js).
-patchWebhookRegister(shopify);
-shopify.api.webhooks.addHandlers(CoreWebhookHandlers);
+const WebhookHandlers = {
+  ...CoreWebhookHandlers,
+  ...OrdersWebhookHandlers,
+};
+shopify.api.webhooks.addHandlers(WebhookHandlers);
 
 const app = express();
 
@@ -37,7 +42,28 @@ app.get(
   shopify.config.auth.callbackPath,
   shopify.auth.callback(),
   async (req, res, next) => {
-    const session = res.locals.shopify?.session;
+    let session = res.locals.shopify?.session;
+    if (session && !session.isOnline) {
+      if (!session.expires) {
+        try {
+          const upgrade = await shopify.api.auth.migrateToExpiringToken({
+            shop: session.shop,
+            nonExpiringOfflineAccessToken: session.accessToken,
+          });
+          session = upgrade.session;
+          await shopify.config.sessionStorage.storeSession(session);
+          res.locals.shopify = { ...res.locals.shopify, session };
+          console.log(
+            `[install] migrated offline token to expiring for ${session.shop}`
+          );
+        } catch (err) {
+          console.log(
+            `[install] migrateToExpiringToken failed for ${session.shop}: ${err.message}`
+          );
+        }
+      }
+    }
+
     if (session) {
       try {
         await runPostAuthInstall(shopify, session);
@@ -53,10 +79,11 @@ app.get(
 );
 app.post(
   shopify.config.webhooks.path,
-  shopify.processWebhooks({ webhookHandlers: CoreWebhookHandlers })
+  shopify.processWebhooks({ webhookHandlers: WebhookHandlers })
 );
 
-app.use("/api/*", shopify.validateAuthenticatedSession());
+// Mint/refresh the offline token before session validation when App Bridge sends a JWT.
+app.use("/api/*", ensureOfflineToken, shopify.validateAuthenticatedSession());
 
 app.use(express.json());
 

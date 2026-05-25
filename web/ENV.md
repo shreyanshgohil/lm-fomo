@@ -11,7 +11,7 @@
 
 ### OAuth mode (default)
 
-Merchants install the app; offline tokens are stored in MongoDB. Expiring offline tokens are refreshed automatically before background jobs run.
+Merchants install the app; offline tokens are stored in MongoDB. On install, legacy non-expiring tokens are upgraded to expiring tokens. While the embedded admin is open, `/api/*` requests mint or refresh the offline token via token exchange; background jobs refresh using the stored refresh token.
 
 ### Client credentials mode
 

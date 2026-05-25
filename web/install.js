@@ -5,8 +5,8 @@ import { enqueueFullShopSync } from "./jobs/queue.js";
 import { sessionHasOrderScopes } from "./services/session-access.js";
 
 /**
- * Runs after OAuth completes. Webhooks are already registered by the auth
- * callback; this verifies registration and starts the initial sales sync.
+ * Runs after OAuth completes. Webhook subscriptions are declared in
+ * shopify.app.toml; this logs handler readiness and starts the initial sales sync.
  *
  * @param {import("./shopify.js").default} shopify
  * @param {import("@shopify/shopify-api").Session} session
