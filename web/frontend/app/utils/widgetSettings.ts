@@ -38,6 +38,14 @@ export function validateWidgetSettings(
     return "Each language needs message text.";
   }
 
+  if (
+    !Number.isFinite(settings.borderRadius) ||
+    settings.borderRadius < 0 ||
+    settings.borderRadius > 32
+  ) {
+    return "Border radius must be between 0 and 32 pixels.";
+  }
+
   return null;
 }
 

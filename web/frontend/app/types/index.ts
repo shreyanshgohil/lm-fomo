@@ -23,6 +23,8 @@ export interface WidgetSettingsState {
   backgroundColor: string;
   borderEnabled: boolean;
   borderColor: string;
+  /** Corner radius in pixels */
+  borderRadius: number;
   productScope: ProductScope;
   selectedProducts: SelectedProduct[];
   hybridMin: number;

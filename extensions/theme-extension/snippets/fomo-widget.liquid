@@ -25,6 +25,12 @@
     {%- assign background_color = settings.backgroundColor | default: '#FFFFFF' -%}
     {%- assign border_enabled = settings.borderEnabled -%}
     {%- assign border_color = settings.borderColor | default: '#E1E3E5' -%}
+    {%- assign border_radius = settings.borderRadius | default: 6 | plus: 0 -%}
+    {%- if border_radius < 0 -%}
+      {%- assign border_radius = 0 -%}
+    {%- elsif border_radius > 32 -%}
+      {%- assign border_radius = 32 -%}
+    {%- endif -%}
     {%- assign product_scope = settings.productScope | default: 'all_products' -%}
     {%- assign hybrid_min = settings.hybridMin | default: 5 | plus: 0 -%}
     {%- assign hybrid_max = settings.hybridMax | default: 25 | plus: 0 -%}
@@ -88,7 +94,7 @@
         data-fomo-mode="{{ fomo_mode }}"
         data-fomo-count="{{ count }}"
         data-fomo-template="{{ message_template | escape }}"
-        style="--fomo-bg-color: {{ background_color }};{% if border_enabled %} --fomo-border-color: {{ border_color }};{% endif %}"
+        style="--fomo-bg-color: {{ background_color }}; --fomo-border-radius: {{ border_radius }}px;{% if border_enabled %} --fomo-border-color: {{ border_color }};{% endif %}"
         role="status"
         aria-live="polite"
       >

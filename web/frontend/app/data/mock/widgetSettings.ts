@@ -39,6 +39,7 @@ export const defaultWidgetSettings: WidgetSettingsState = {
   backgroundColor: "#FFFFFF",
   borderEnabled: false,
   borderColor: "#E1E3E5",
+  borderRadius: 6,
   productScope: "all_products",
   selectedProducts: [],
   hybridMin: 5,

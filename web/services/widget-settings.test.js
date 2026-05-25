@@ -22,6 +22,17 @@ test("normalizeWidgetSettings returns defaults for invalid input", () => {
   assert.equal(normalized.backgroundColor, "#FFFFFF");
   assert.equal(normalized.borderEnabled, false);
   assert.equal(normalized.borderColor, "#E1E3E5");
+  assert.equal(normalized.borderRadius, 6);
+});
+
+test("normalizeWidgetSettings clamps border radius", () => {
+  const normalized = normalizeWidgetSettings({ borderRadius: 99 });
+  assert.ok(normalized);
+  assert.equal(normalized.borderRadius, 32);
+
+  const low = normalizeWidgetSettings({ borderRadius: -4 });
+  assert.ok(low);
+  assert.equal(low.borderRadius, 0);
 });
 
 test("normalizeWidgetSettings preserves appearance fields", () => {
@@ -35,6 +46,7 @@ test("normalizeWidgetSettings preserves appearance fields", () => {
   assert.equal(normalized.backgroundColor, "#F6F6F7");
   assert.equal(normalized.borderEnabled, true);
   assert.equal(normalized.borderColor, "#8C9196");
+  assert.equal(normalized.borderRadius, 6);
 });
 
 test("validateWidgetSettings rejects selected products without items", () => {

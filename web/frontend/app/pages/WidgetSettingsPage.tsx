@@ -252,6 +252,7 @@ export function WidgetSettingsPage() {
                 backgroundColor={settings.backgroundColor}
                 borderEnabled={settings.borderEnabled}
                 borderColor={settings.borderColor}
+                borderRadius={settings.borderRadius}
                 onBackgroundColorChange={(backgroundColor) =>
                   update("backgroundColor", backgroundColor)
                 }
@@ -260,6 +261,9 @@ export function WidgetSettingsPage() {
                 }
                 onBorderColorChange={(borderColor) =>
                   update("borderColor", borderColor)
+                }
+                onBorderRadiusChange={(borderRadius) =>
+                  update("borderRadius", borderRadius)
                 }
               />
             </SettingsSection>

@@ -1,18 +1,14 @@
-import OrdersWebhookHandlers from "./orders.js";
-
 /**
- * Ensures orders/create handlers are registered. Subscription delivery is
- * declared in shopify.app.toml (`use_legacy_install_flow = false`); programmatic
- * `webhooks.register` is intentionally disabled in shopify.js.
+ * Orders/create handlers are registered once at process startup in index.js.
+ * Subscription delivery is declared in shopify.app.toml (`use_legacy_install_flow = false`).
+ * Do not call `addHandlers` here — repeating it stacks duplicate callbacks per delivery.
  *
- * @param {import("../shopify.js").default} shopify
+ * @param {import("../shopify.js").default} _shopify
  * @param {import("@shopify/shopify-api").Session} session
  */
-export async function registerOrdersWebhooks(shopify, session) {
-  const shop = session.shop;
-  shopify.api.webhooks.addHandlers(OrdersWebhookHandlers);
+export async function registerOrdersWebhooks(_shopify, session) {
   console.log(
-    `[${shop}] orders/create handler ready (declarative subscription in shopify.app.toml)`
+    `[${session.shop}] orders/create handler ready (declarative subscription in shopify.app.toml)`
   );
   return true;
 }

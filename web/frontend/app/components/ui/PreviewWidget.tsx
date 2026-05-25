@@ -22,6 +22,7 @@ interface PreviewWidgetProps {
     | "backgroundColor"
     | "borderEnabled"
     | "borderColor"
+    | "borderRadius"
     | "fomoMode"
     | "productScope"
     | "selectedProducts"
@@ -151,6 +152,7 @@ export function PreviewWidget({
             minWidth="280px"
             style={{
               backgroundColor: settings.backgroundColor,
+              borderRadius: `${settings.borderRadius}px`,
               ...(settings.borderEnabled
                 ? {
                     borderWidth: "1px",

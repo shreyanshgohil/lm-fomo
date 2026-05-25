@@ -14,6 +14,7 @@ export const DEFAULT_WIDGET_SETTINGS = {
   backgroundColor: "#FFFFFF",
   borderEnabled: false,
   borderColor: "#E1E3E5",
+  borderRadius: 6,
   productScope: "all_products",
   selectedProducts: [],
   hybridMin: 5,
@@ -27,6 +28,20 @@ const FOMO_MODES = new Set([
   "hybrid_randomized",
 ]);
 const PRODUCT_SCOPES = new Set(["all_products", "selected_products"]);
+
+const BORDER_RADIUS_MIN = 0;
+const BORDER_RADIUS_MAX = 32;
+
+function normalizeBorderRadius(value) {
+  const radius = Number(value);
+  if (!Number.isFinite(radius)) {
+    return DEFAULT_WIDGET_SETTINGS.borderRadius;
+  }
+  return Math.min(
+    BORDER_RADIUS_MAX,
+    Math.max(BORDER_RADIUS_MIN, Math.round(radius))
+  );
+}
 
 const SHOP_WIDGET_SETTINGS_QUERY = `
   query ShopWidgetSettings {
@@ -138,6 +153,7 @@ export function normalizeWidgetSettings(input) {
       typeof input.borderColor === "string" && input.borderColor.trim()
         ? input.borderColor.trim()
         : DEFAULT_WIDGET_SETTINGS.borderColor,
+    borderRadius: normalizeBorderRadius(input.borderRadius),
     productScope,
     selectedProducts: normalizeSelectedProducts(input.selectedProducts),
     hybridMin: Number.isFinite(hybridMin)

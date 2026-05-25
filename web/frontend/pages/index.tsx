@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import { Banner, BlockStack, Spinner } from "@shopify/polaris";
+import { Banner, BlockStack, Page, Spinner } from "@shopify/polaris";
 import { useQuery, useQueryClient } from "react-query";
 import { OnboardingFlow } from "../app/components/onboarding";
 import { WidgetSettingsPage } from "../app/pages/WidgetSettingsPage";
@@ -32,9 +32,11 @@ export default function HomePage() {
 
   if (isLoading) {
     return (
-      <BlockStack inlineAlign="center">
-        <Spinner accessibilityLabel="Loading" size="large" />
-      </BlockStack>
+      <Page narrowWidth title="Loading">
+        <BlockStack inlineAlign="center">
+          <Spinner accessibilityLabel="Loading onboarding" size="large" />
+        </BlockStack>
+      </Page>
     );
   }
 

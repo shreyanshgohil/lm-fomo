@@ -62,7 +62,14 @@ function toSearchQuery(createdAfter) {
 }
 
 function mapLineItemEdges(edges = []) {
-  return edges.map((edge) => edge.node);
+  return edges
+    .map((edge) => edge.node)
+    .map((node) => ({
+      id: node.id,
+      quantity: Math.max(0, Math.floor(Number(node.quantity) || 0)),
+      product: node.product,
+    }))
+    .filter((item) => item.product?.id && item.quantity > 0);
 }
 
 async function fetchRemainingLineItems(session, order) {

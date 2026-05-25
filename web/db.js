@@ -35,6 +35,49 @@ export async function getProductSalesCollection() {
   return database.collection("product_sales");
 }
 
+let processedOrdersIndexReady = false;
+
+async function ensureProcessedOrdersIndex() {
+  if (processedOrdersIndexReady) {
+    return;
+  }
+
+  const processed = await getProcessedOrdersCollection();
+  await processed.createIndex({ shop: 1, orderId: 1 }, { unique: true });
+  processedOrdersIndexReady = true;
+}
+
+export async function getProcessedOrdersCollection() {
+  const database = await getDb();
+  return database.collection("processed_orders");
+}
+
+/**
+ * @returns {Promise<boolean>} true when this order was not processed before
+ */
+export async function claimOrderProcessed(shop, orderId) {
+  if (!shop || !orderId) {
+    return false;
+  }
+
+  await ensureProcessedOrdersIndex();
+  const processed = await getProcessedOrdersCollection();
+
+  try {
+    await processed.insertOne({
+      shop,
+      orderId,
+      processedAt: new Date(),
+    });
+    return true;
+  } catch (error) {
+    if (error?.code === 11000) {
+      return false;
+    }
+    throw error;
+  }
+}
+
 export async function upsertShop(shop) {
   const shops = await getShopsCollection();
   await shops.updateOne(
@@ -47,9 +90,11 @@ export async function upsertShop(shop) {
 export async function removeShop(shop) {
   const shops = await getShopsCollection();
   const sales = await getProductSalesCollection();
+  const processed = await getProcessedOrdersCollection();
   await Promise.all([
     shops.deleteOne({ shop }),
     sales.deleteMany({ shop }),
+    processed.deleteMany({ shop }),
   ]);
 }
 

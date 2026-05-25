@@ -17,13 +17,26 @@ export function aggregateOrderQuantities(orders) {
   const totals = new Map();
 
   for (const order of orders) {
+    const seenLineItemIds = new Set();
+
     for (const lineItem of order.lineItems) {
+      if (lineItem.id) {
+        if (seenLineItemIds.has(lineItem.id)) {
+          continue;
+        }
+        seenLineItemIds.add(lineItem.id);
+      }
+
       const productId = lineItem.product?.id;
       if (!productId) {
         continue;
       }
 
-      const quantity = lineItem.quantity ?? 0;
+      const quantity = Math.max(0, Math.floor(Number(lineItem.quantity) || 0));
+      if (quantity === 0) {
+        continue;
+      }
+
       totals.set(productId, (totals.get(productId) ?? 0) + quantity);
     }
   }
@@ -92,6 +105,13 @@ export async function syncLast24HoursSales(session, shop) {
 }
 
 export async function applyOrderToSales(session, shop, order) {
+  const { claimOrderProcessed } = await import("../db.js");
+  const claimed = await claimOrderProcessed(shop, order.id);
+  if (!claimed) {
+    console.log(`[${shop}] Skipping duplicate order ${order.id}`);
+    return { skipped: true, reason: "duplicate_order" };
+  }
+
   const createdAt = new Date(order.createdAt);
   const within24h = createdAt >= hoursAgo(24);
   const quantities = aggregateOrderQuantities([order]);
@@ -117,7 +137,7 @@ export async function applyOrderToSales(session, shop, order) {
   }
 
   if (updates.length === 0) {
-    return;
+    return { skipped: false, productCount: 0 };
   }
 
   const totalMap = new Map();
@@ -130,4 +150,6 @@ export async function applyOrderToSales(session, shop, order) {
 
   await setProductMetafields(session, totalMap, METAFIELD_TOTAL_SOLD);
   await setProductMetafields(session, last24Map, METAFIELD_SOLD_LAST_24H);
+
+  return { skipped: false, productCount: updates.length };
 }
