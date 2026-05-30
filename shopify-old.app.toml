@@ -1,10 +1,9 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
-client_id = "a68ebf4742f5a18c858b90bc7940602e"
+client_id = "f8d6d24ce68f5a5a504914b4b043a8c7"
 application_url = "https://lm-fomo.lumoonix.com"
 embedded = true
-name = "TrustSold - AI Sales Counter"
-handle ="trustSold-ai-sales-counter"
+name = "lm-fomo"
 
 [access_scopes]
 # Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
@@ -14,20 +13,20 @@ use_legacy_install_flow = false
 [webhooks]
 api_version = "2025-07"
 
-[[webhooks.subscriptions]]
-uri = "/api/webhooks"
-topics = [ "orders/create", "app/uninstalled" ]
+  [[webhooks.subscriptions]]
+  uri = "/api/webhooks"
+  topics = [ "orders/create", "app/uninstalled" ]
 
-[[webhooks.subscriptions]]
-compliance_topics = [ "customers/data_request", "customers/redact", "shop/redact" ]
-uri = "/api/webhooks"
+  [[webhooks.subscriptions]]
+  compliance_topics = [ "customers/data_request", "customers/redact", "shop/redact" ]
+  uri = "/api/webhooks"
 
 
 [auth]
 redirect_urls = [
-    "https://lm-fomo.lumoonix.com/api/auth",
-    "https://lm-fomo.lumoonix.com/api/auth/callback",
-    "https://lm-fomo.lumoonix.com/auth/callback"
+  "https://lm-fomo.lumoonix.com/api/auth",
+  "https://lm-fomo.lumoonix.com/api/auth/callback",
+  "https://lm-fomo.lumoonix.com/auth/callback"
 ]
 
 [build]
@@ -38,32 +37,32 @@ type = "number_integer"
 name = "Total units sold"
 description = "Lifetime units sold for this product (all orders)"
 
-[product.metafields.app.total_sold.access]
-admin = "merchant_read_write"
-storefront = "public_read"
+  [product.metafields.app.total_sold.access]
+  admin = "merchant_read_write"
+  storefront = "public_read"
 
 [product.metafields.app.sold_last_24h]
 type = "number_integer"
 name = "Units sold in last 24 hours"
 description = "Units sold in the rolling 24-hour window"
 
-[product.metafields.app.sold_last_24h.access]
-admin = "merchant_read_write"
-storefront = "public_read"
+  [product.metafields.app.sold_last_24h.access]
+  admin = "merchant_read_write"
+  storefront = "public_read"
 
 [shop.metafields.app.widget_settings]
 type = "json"
 name = "FOMO widget settings"
 description = "Admin configuration for the FOMO storefront widget"
 
-[shop.metafields.app.widget_settings.access]
-admin = "merchant_read_write"
-storefront = "public_read"
+  [shop.metafields.app.widget_settings.access]
+  admin = "merchant_read_write"
+  storefront = "public_read"
 
 [shop.metafields.app.onboarding_completed]
 type = "boolean"
 name = "Onboarding completed"
 description = "Whether the merchant finished the in-app onboarding flow"
 
-[shop.metafields.app.onboarding_completed.access]
-admin = "merchant_read_write"
+  [shop.metafields.app.onboarding_completed.access]
+  admin = "merchant_read_write"
