@@ -1,31 +1,24 @@
-import { BillingInterval, LATEST_API_VERSION } from "@shopify/shopify-api";
+import "./load-env.js";
+import { ApiVersion } from "@shopify/shopify-api";
 import { shopifyApp } from "@shopify/shopify-app-express";
-import { SQLiteSessionStorage } from "@shopify/shopify-app-session-storage-sqlite";
-import { restResources } from "@shopify/shopify-api/rest/admin/2024-10";
+import { MongoDBSessionStorage } from "@shopify/shopify-app-session-storage-mongodb";
+import { restResources } from "@shopify/shopify-api/rest/admin/2025-07";
 
-const DB_PATH = `${process.cwd()}/database.sqlite`;
-
-// The transactions with Shopify will always be marked as test transactions, unless NODE_ENV is production.
-// See the ensureBilling helper to learn more about billing in this template.
-const billingConfig = {
-  "My Shopify One-Time Charge": {
-    // This is an example configuration that would do a one-time charge for $5 (only USD is currently supported)
-    amount: 5.0,
-    currencyCode: "USD",
-    interval: BillingInterval.OneTime,
-  },
-};
+const mongoUrl = process.env.MONGODB_URI;
+if (!mongoUrl) {
+  throw new Error("MONGODB_URI environment variable is required");
+}
 
 const shopify = shopifyApp({
   api: {
-    apiVersion: LATEST_API_VERSION,
+    apiVersion: ApiVersion.July25,
     restResources,
     future: {
       customerAddressDefaultFix: true,
       lineItemBilling: true,
       unstable_managedPricingSupport: true,
     },
-    billing: undefined, // or replace with billingConfig above to enable example billing
+    billing: undefined,
   },
   auth: {
     path: "/api/auth",
@@ -34,8 +27,13 @@ const shopify = shopifyApp({
   webhooks: {
     path: "/api/webhooks",
   },
-  // This should be replaced with your preferred storage strategy
-  sessionStorage: new SQLiteSessionStorage(DB_PATH),
+  sessionStorage: new MongoDBSessionStorage(mongoUrl),
 });
+
+// shopify-app-express still calls `api.webhooks.register({ session })` during the
+// legacy OAuth callback. With declarative webhook subscriptions in shopify.app.toml
+// (`use_legacy_install_flow = false`) Shopify rejects programmatic registration with
+// 403. Webhook delivery is owned by Shopify; `processWebhooks` registers handlers.
+shopify.api.webhooks.register = async () => ({});
 
 export default shopify;

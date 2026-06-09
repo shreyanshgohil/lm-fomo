@@ -1,0 +1,103 @@
+{% doc %}
+  Renders the LM Fomo widget on product pages.
+
+  App-owned metafields use the $app reserved prefix in theme app extension Liquid
+  (see shopify.app.toml — not shop.metafields.app):
+  - shop.metafields["$app"].widget_settings (json)
+  - product.metafields["$app"].sold_last_24h (integer)
+  - product.metafields["$app"].total_sold (integer)
+
+  @example
+  {% render 'fomo-widget' %}
+{% enddoc %}
+
+{%- unless product -%}
+{%- else -%}
+  {%- assign settings_raw = shop.metafields['$app'].widget_settings.value -%}
+  {%- assign settings = settings_raw -%}
+  {%- if settings_raw != blank and settings_raw.fomoMode == blank -%}
+    {%- assign settings = settings_raw | parse_json -%}
+  {%- endif -%}
+
+  {%- if settings != blank -%}
+    {%- assign fomo_mode = settings.fomoMode | default: 'last_24_hours' -%}
+    {%- assign pulse_color = settings.pulseColor | default: '#008060' -%}
+    {%- assign product_scope = settings.productScope | default: 'all_products' -%}
+    {%- assign hybrid_min = settings.hybridMin | default: 5 | plus: 0 -%}
+    {%- assign hybrid_max = settings.hybridMax | default: 25 | plus: 0 -%}
+    {%- assign hybrid_ttl = settings.hybridTtl | default: 60 | plus: 0 -%}
+
+    {%- assign show_widget = false -%}
+    {%- if product_scope == 'all_products' -%}
+      {%- assign show_widget = true -%}
+    {%- elsif product_scope == 'selected_products' -%}
+      {%- assign current_gid = 'gid://shopify/Product/' | append: product.id -%}
+      {%- for entry in settings.selectedProducts -%}
+        {%- if entry.id == current_gid -%}
+          {%- assign show_widget = true -%}
+          {%- break -%}
+        {%- endif -%}
+      {%- endfor -%}
+    {%- endif -%}
+
+    {%- if show_widget -%}
+      {%- assign sold_24h = product.metafields['$app'].sold_last_24h.value | default: 0 | plus: 0 -%}
+      {%- assign total_sold = product.metafields['$app'].total_sold.value | default: 0 | plus: 0 -%}
+
+      {%- if hybrid_min > hybrid_max -%}
+        {%- assign hybrid_min = hybrid_max -%}
+      {%- endif -%}
+
+      {%- assign count = sold_24h -%}
+      {%- if fomo_mode == 'total_sold' -%}
+        {%- assign count = total_sold -%}
+      {%- elsif fomo_mode == 'hybrid_randomized' -%}
+        {%- assign ttl_seconds = hybrid_ttl | times: 60 -%}
+        {%- if ttl_seconds < 1 -%}
+          {%- assign ttl_seconds = 3600 -%}
+        {%- endif -%}
+        {%- assign epoch = 'now' | date: '%s' | plus: 0 -%}
+        {%- assign bucket = epoch | divided_by: ttl_seconds -%}
+        {%- assign seed = product.id | plus: bucket -%}
+        {%- assign range = hybrid_max | minus: hybrid_min | plus: 1 -%}
+        {%- assign offset = seed | modulo: range -%}
+        {%- assign count = hybrid_min | plus: offset -%}
+      {%- endif -%}
+
+      {%- assign locale_code = localization.language.iso_code | default: 'en' -%}
+      {%- assign message_template = '' -%}
+      {%- for entry in settings.messageTranslations -%}
+        {%- if entry.locale == locale_code and entry.text != blank -%}
+          {%- assign message_template = entry.text -%}
+          {%- break -%}
+        {%- endif -%}
+      {%- endfor -%}
+      {%- if message_template == blank and settings.messageTranslations.size > 0 -%}
+        {%- assign message_template = settings.messageTranslations.first.text -%}
+      {%- endif -%}
+      {%- if message_template == blank -%}
+        {%- assign message_template = '{{count}} people bought this in the last 24 hours' -%}
+      {%- endif -%}
+
+      <div
+        class="fomo-widget"
+        data-fomo-widget
+        data-fomo-mode="{{ fomo_mode }}"
+        data-fomo-count="{{ count }}"
+        data-fomo-template="{{ message_template | escape }}"
+        role="status"
+        aria-live="polite"
+      >
+        <span
+          class="fomo-widget__dot"
+          style="--fomo-dot-color: {{ pulse_color }}; --fomo-dot-size: 8px;"
+          aria-hidden="true"
+        >
+          <span class="fomo-widget__dot-pulse"></span>
+          <span class="fomo-widget__dot-core"></span>
+        </span>
+        <span class="fomo-message-html"></span>
+      </div>
+    {%- endif -%}
+  {%- endif -%}
+{%- endunless -%}

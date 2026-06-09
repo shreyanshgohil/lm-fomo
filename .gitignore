@@ -2,8 +2,11 @@
 .env
 .env.*
 
+.idea
 # Dependency directory
 node_modules
+
+package-lock.json
 
 # Test coverage directory
 coverage

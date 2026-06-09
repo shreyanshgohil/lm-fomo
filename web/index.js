@@ -1,4 +1,5 @@
 // @ts-check
+import "./load-env.js";
 import { join } from "path";
 import { readFileSync } from "fs";
 import express from "express";
@@ -6,7 +7,14 @@ import serveStatic from "serve-static";
 
 import shopify from "./shopify.js";
 import productCreator from "./product-creator.js";
-import PrivacyWebhookHandlers from "./privacy.js";
+import {
+  CoreWebhookHandlers,
+  OrdersWebhookHandlers,
+} from "./webhooks/index.js";
+import { startJobWorker } from "./jobs/worker.js";
+import { runPostAuthInstall } from "./install.js";
+import { registerWidgetSettingsRoutes } from "./routes/widget-settings.js";
+import ensureOfflineToken from "./auth/token-exchange.js";
 
 const PORT = parseInt(
   process.env.BACKEND_PORT || process.env.PORT || "3000",
@@ -18,26 +26,68 @@ const STATIC_PATH =
     ? `${process.cwd()}/frontend/dist`
     : `${process.cwd()}/frontend/`;
 
+const WebhookHandlers = {
+  ...CoreWebhookHandlers,
+  ...OrdersWebhookHandlers,
+};
+shopify.api.webhooks.addHandlers(WebhookHandlers);
+
 const app = express();
 
-// Set up Shopify authentication and webhook handling
+// Required when Shopify CLI / Cloudflare tunnel forwards HTTPS to the local server.
+app.set("trust proxy", true);
+
 app.get(shopify.config.auth.path, shopify.auth.begin());
 app.get(
   shopify.config.auth.callbackPath,
   shopify.auth.callback(),
-  shopify.redirectToShopifyOrAppRoot()
+  async (req, res, next) => {
+    let session = res.locals.shopify?.session;
+    if (session && !session.isOnline) {
+      if (!session.expires) {
+        try {
+          const upgrade = await shopify.api.auth.migrateToExpiringToken({
+            shop: session.shop,
+            nonExpiringOfflineAccessToken: session.accessToken,
+          });
+          session = upgrade.session;
+          await shopify.config.sessionStorage.storeSession(session);
+          res.locals.shopify = { ...res.locals.shopify, session };
+          console.log(
+            `[install] migrated offline token to expiring for ${session.shop}`
+          );
+        } catch (err) {
+          console.log(
+            `[install] migrateToExpiringToken failed for ${session.shop}: ${err.message}`
+          );
+        }
+      }
+    }
+
+    if (session) {
+      try {
+        await runPostAuthInstall(shopify, session);
+      } catch (error) {
+        console.error(
+          `[${session.shop}] Post-auth install failed:`,
+          error.message
+        );
+      }
+    }
+    return shopify.redirectToShopifyOrAppRoot()(req, res, next);
+  }
 );
 app.post(
   shopify.config.webhooks.path,
-  shopify.processWebhooks({ webhookHandlers: PrivacyWebhookHandlers })
+  shopify.processWebhooks({ webhookHandlers: WebhookHandlers })
 );
 
-// If you are adding routes outside of the /api path, remember to
-// also add a proxy rule for them in web/frontend/vite.config.js
-
-app.use("/api/*", shopify.validateAuthenticatedSession());
+// Mint/refresh the offline token before session validation when App Bridge sends a JWT.
+app.use("/api/*", ensureOfflineToken, shopify.validateAuthenticatedSession());
 
 app.use(express.json());
+
+registerWidgetSettingsRoutes(app);
 
 app.get("/api/products/count", async (_req, res) => {
   const client = new shopify.api.clients.Graphql({
@@ -83,4 +133,8 @@ app.use("/*", shopify.ensureInstalledOnShop(), async (_req, res, _next) => {
     );
 });
 
-app.listen(PORT);
+await startJobWorker();
+
+app.listen(PORT, () => {
+  console.log(`Server listening on port ${PORT}`);
+});

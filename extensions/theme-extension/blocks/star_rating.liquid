@@ -1,0 +1,16 @@
+<div {{ block.shopify_attributes }}>
+  {% render 'fomo-widget' %}
+</div>
+
+{% schema %}
+{
+  "name": "Fomo",
+  "target": "section",
+  "enabled_on": {
+    "templates": ["product"]
+  },
+  "stylesheet": "fomo-widget.css",
+  "javascript": "fomo-widget.js",
+  "settings": []
+}
+{% endschema %}

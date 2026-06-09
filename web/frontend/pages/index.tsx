@@ -1,12 +1,14 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Banner,
   BlockStack,
   Button,
   ChoiceList,
   InlineGrid,
+  Spinner,
 } from "@shopify/polaris";
 import { useAppBridge } from "@shopify/app-bridge-react";
+import { useQuery } from "react-query";
 import { PageContainer, StickyColumn } from "../app/components/layout";
 import {
   PulseColorPicker,
@@ -18,14 +20,20 @@ import {
   SettingsSection,
 } from "../app/components/ui";
 import {
+  fetchWidgetSettings,
+  updateWidgetSettings,
+} from "../app/api/widgetSettings";
+import {
   defaultWidgetSettings,
   fomoModeOptions,
 } from "../app/data/mock/widgetSettings";
 import type { FomoMode, WidgetSettingsState } from "../app/types";
 import {
   settingsAreEqual,
+  toPersistableSettings,
   validateWidgetSettings,
 } from "../app/utils/widgetSettings";
+import { toWidgetSettingsState } from "../app/utils/widgetSettingsState";
 
 export default function WidgetSettingsPage() {
   const shopify = useAppBridge();
@@ -36,6 +44,33 @@ export default function WidgetSettingsPage() {
     defaultWidgetSettings,
   );
   const [isSaving, setIsSaving] = useState(false);
+  const [hasHydrated, setHasHydrated] = useState(false);
+
+  const {
+    data: loadedSettings,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useQuery({
+    queryKey: ["widgetSettings"],
+    queryFn: async () => {
+      const persistable = await fetchWidgetSettings();
+      return toWidgetSettingsState(persistable);
+    },
+    refetchOnWindowFocus: false,
+    retry: 1,
+  });
+
+  useEffect(() => {
+    if (!loadedSettings || hasHydrated) {
+      return;
+    }
+
+    setSettings(loadedSettings);
+    setSavedSettings(loadedSettings);
+    setHasHydrated(true);
+  }, [hasHydrated, loadedSettings]);
 
   const update = <K extends keyof WidgetSettingsState>(
     key: K,
@@ -54,7 +89,8 @@ export default function WidgetSettingsPage() {
     [settings, savedSettings],
   );
 
-  const canSave = isDirty && validationError === null && !isSaving;
+  const canSave =
+    hasHydrated && isDirty && validationError === null && !isSaving && !isLoading;
 
   const handleSave = useCallback(async () => {
     const error = validateWidgetSettings(settings);
@@ -62,17 +98,36 @@ export default function WidgetSettingsPage() {
 
     setIsSaving(true);
     try {
-      // TODO: POST toPersistableSettings(settings) to your settings API
-      await new Promise((resolve) => setTimeout(resolve, 400));
+      const persistable = toPersistableSettings(settings);
+      const saved = await updateWidgetSettings(persistable);
+      const nextState = toWidgetSettingsState(saved);
 
-      setSavedSettings(settings);
+      setSettings(nextState);
+      setSavedSettings(nextState);
       shopify.toast.show("Settings saved");
-    } catch {
-      shopify.toast.show("Could not save settings", { isError: true });
+    } catch (saveError) {
+      const message =
+        saveError instanceof Error
+          ? saveError.message
+          : "Could not save settings";
+      shopify.toast.show(message, { isError: true });
     } finally {
       setIsSaving(false);
     }
   }, [savedSettings, settings, shopify]);
+
+  if (isLoading && !hasHydrated) {
+    return (
+      <PageContainer
+        title="Widget Settings"
+        subtitle="Customize how FOMO appears on your product pages"
+      >
+        <BlockStack inlineAlign="center">
+          <Spinner accessibilityLabel="Loading widget settings" size="large" />
+        </BlockStack>
+      </PageContainer>
+    );
+  }
 
   return (
     <PageContainer
@@ -89,6 +144,20 @@ export default function WidgetSettingsPage() {
         </Button>
       }
     >
+      {isError && (
+        <Banner
+          tone="critical"
+          action={{
+            content: "Retry",
+            onAction: () => refetch(),
+          }}
+        >
+          {error instanceof Error
+            ? error.message
+            : "Could not load widget settings."}
+        </Banner>
+      )}
+
       {isDirty && validationError && (
         <Banner tone="warning">{validationError}</Banner>
       )}
